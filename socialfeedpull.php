@@ -69,8 +69,6 @@ $instagram_access_token = "";
 $instagram_username = "";
 
 
-
-
 /* Helper functions
    ==========================================================================
 */
@@ -88,15 +86,17 @@ function checkIfBlocked($id, $blockedItems)
         return false;
     }
 }
+
 /**
  * create file with content, and create folder structure if doesn't exist
  * @param String $filepath
  * @param String $message
  */
-function forceFilePutContents($filepath, $message){
+function forceFilePutContents($filepath, $message)
+{
     try {
         $isInFolder = preg_match("/^(.*)\/([^\/]+)$/", $filepath, $filepathMatches);
-        if($isInFolder) {
+        if ($isInFolder) {
             $folderName = $filepathMatches[1];
             $fileName = $filepathMatches[2];
             if (!is_dir($folderName)) {
@@ -105,9 +105,10 @@ function forceFilePutContents($filepath, $message){
         }
         file_put_contents($filepath, $message);
     } catch (Exception $e) {
-        echo "ERR: error writing '$message' to '$filepath', ". $e->getMessage();
+        echo "ERR: error writing '$message' to '$filepath', " . $e->getMessage();
     }
 }
+
 /**
  * load url over ssl
  * @param String $curl_option optional
@@ -129,6 +130,7 @@ function getSslPage($url, $curl_option = null, $option_value = null)
     curl_close($ch);
     return $result;
 }
+
 /**
  * Array sort function for filtering by date->timestamp.
  * @param Date $a
@@ -138,6 +140,7 @@ function datesort($a, $b)
 {
     return intval($b->timestamp) - intval($a->timestamp);
 }
+
 /**
  * Thumbnail function
  * @param String $id
@@ -148,7 +151,8 @@ function datesort($a, $b)
  * @param Array $thumbnailOptions
  * @param String $resizedImagesFolder
  */
-function downloadAndCreateThumbnail($id, &$feed_item, $downloadTempFolder, $imageResizeWidth, $imageResizeHeight, $thumbnailOptions, $resizedImagesFolder){
+function downloadAndCreateThumbnail($id, &$feed_item, $downloadTempFolder, $imageResizeWidth, $imageResizeHeight, $thumbnailOptions, $resizedImagesFolder)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
     curl_setopt($ch, CURLOPT_HEADER, false);
@@ -156,14 +160,14 @@ function downloadAndCreateThumbnail($id, &$feed_item, $downloadTempFolder, $imag
     curl_setopt($ch, CURLOPT_URL, $feed_item->image);
     curl_setopt($ch, CURLOPT_REFERER, $feed_item->image);
 
-    $fp = fopen($downloadTempFolder. '/images/' . $id . '.jpg', 'wb');
+    $fp = fopen($downloadTempFolder . '/images/' . $id . '.jpg', 'wb');
     curl_setopt($ch, CURLOPT_FILE, $fp);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_exec($ch);
     curl_close($ch);
     fclose($fp);
 
-    $thumb = PhpThumbFactory::create($downloadTempFolder. '/images/' . $id . '.jpg', $thumbnailOptions);
+    $thumb = PhpThumbFactory::create($downloadTempFolder . '/images/' . $id . '.jpg', $thumbnailOptions);
     $thumb->adaptiveResize($imageResizeWidth, $imageResizeHeight);
     $thumb->cropFromCenter($imageResizeWidth, $imageResizeHeight);
     $thumb->save($resizedImagesFolder . '/' . $id . '.jpg', "jpg");
@@ -223,7 +227,6 @@ foreach ($twitter_response as $key => $value) {
 }
 
 
-
 /* Load and parse Facebook feed
    ==========================================================================
 */
@@ -264,7 +267,7 @@ foreach ($facebook_response->data as $key => $value) {
             $feed_item->image = $imageObject->images[0]->source;
         }
         //Create thumbnail:
-        downloadAndCreateThumbnail("facebook_".$value->object_id, $feed_item, $downloadTempFolder, $imageResizeWidth, $imageResizeHeight, $thumbnailOptions, $resizedImagesFolder);
+        downloadAndCreateThumbnail("facebook_" . $value->object_id, $feed_item, $downloadTempFolder, $imageResizeWidth, $imageResizeHeight, $thumbnailOptions, $resizedImagesFolder);
     } else {
         $feed_item->image = "";
     }
@@ -292,7 +295,7 @@ foreach ($instagram_response->data as $key => $value) {
     $feed_item->message = isset($value->caption->text) ? $value->caption->text : "";
     $feed_item->image = $value->images->standard_resolution->url; //Other resolutions are available here, the standard_resolution is the highest resolution.
 
-    downloadAndCreateThumbnail("instagram_".$value->id, $feed_item, $downloadTempFolder, $imageResizeWidth, $imageResizeHeight, $thumbnailOptions, $resizedImagesFolder);
+    downloadAndCreateThumbnail("instagram_" . $value->id, $feed_item, $downloadTempFolder, $imageResizeWidth, $imageResizeHeight, $thumbnailOptions, $resizedImagesFolder);
 
     $feed_item->link = $value->link;
     $feed_item->source = "instagram";
